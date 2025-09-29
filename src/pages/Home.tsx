@@ -85,7 +85,7 @@ const Home: React.FC = () => {
           muted
           playsInline
         >
-          <source src="/public/Maa-Mangala.mp4" type="video/mp4" />
+          <source src="https://www.pexels.com/download/video/8470302/" type="video/mp4" />
         </video>
 
 
