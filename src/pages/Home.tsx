@@ -60,7 +60,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     fetchGallery();
-  }, [fetchGallery]);
+  }, []);
 
   useEffect(() => {
     if (!loaderRef.current || !hasMore || galleryImages.length === 0) return;
