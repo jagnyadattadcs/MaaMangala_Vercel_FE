@@ -145,7 +145,7 @@ const About: React.FC = () => {
                 What started as a small workshop has grown into one of the most trusted automotive service centers in the region.
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
-                Our founder, Mr. Rajesh Sharma, started with just two mechanics and a vision to change how people think about car repairs. 
+                Our founder, Mr. Chandramani Swain, started with just two mechanics and a vision to change how people think about car repairs. 
                 Today, we have a team of 50+ certified technicians serving thousands of satisfied customers.
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">

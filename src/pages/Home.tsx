@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -14,8 +14,70 @@ import {
   ArrowRight,
   PhoneCall
 } from 'lucide-react';
+import type { GalleryImage } from '../types/gallery';
+
+const API_URL = import.meta.env.VITE_CONTACT_API_URL || 'http://localhost:5000';
 
 const Home: React.FC = () => {
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const pageRef = React.useRef(1);
+  const loaderRef = React.useRef<HTMLDivElement | null>(null);
+  const observerRef = React.useRef<IntersectionObserver | null>(null);
+
+  const fetchGallery = useCallback(async () => {
+    if (!hasMore || isLoading) return;
+
+    try {
+      setIsLoading(true);
+      const url = `${API_URL}/api/gallery?page=${pageRef.current}&limit=12`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'Unable to read response body');
+        throw new Error(`Failed to load gallery images: ${response.status} ${response.statusText} - ${text}`);
+      }
+      const data = await response.json();
+      setGalleryImages((prev) => {
+        const existingIds = new Set(prev.map((image) => image._id));
+        const uniqueNewImages = data.data.filter((image) => !existingIds.has(image._id));
+        return [...prev, ...uniqueNewImages];
+      });
+      setHasMore(data.pagination.hasMore);
+      if (data.pagination.hasMore) {
+        pageRef.current += 1;
+      }
+    } catch (err) {
+      console.error('Error loading gallery images:', err);
+      setError('Unable to load gallery images at the moment.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_URL, hasMore, isLoading]);
+
+  useEffect(() => {
+    fetchGallery();
+  }, [fetchGallery]);
+
+  useEffect(() => {
+    if (!loaderRef.current || !hasMore) return;
+
+    observerRef.current?.disconnect();
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isLoading) {
+        fetchGallery();
+      }
+    });
+
+    observerRef.current.observe(loaderRef.current);
+
+    return () => observerRef.current?.disconnect();
+  }, [fetchGallery, hasMore, isLoading]);
+
   const services = [
     { icon: Settings, title: 'Engine Repair', description: 'Complete engine diagnostics and repair' },
     { icon: Car, title: 'AC Service', description: 'Air conditioning maintenance and repair' },
@@ -27,7 +89,7 @@ const Home: React.FC = () => {
 
   const features = [
     { icon: Shield, title: 'Certified Technicians', description: 'Expert mechanics with years of experience' },
-    { icon: Clock, title: '24/7 Support', description: 'Round-the-clock assistance for emergencies' },
+    { icon: Clock, title: 'Support', description: 'Round-the-clock assistance for emergencies' },
     { icon: Award, title: 'Quality Parts', description: 'Genuine and high-quality replacement parts' },
     { icon: Users, title: 'Customer First', description: 'Dedicated to exceptional customer service' },
   ];
@@ -51,7 +113,7 @@ const Home: React.FC = () => {
       comment: 'Great experience! They explained everything clearly and completed work on time.',
       location: 'Puri'
     }
-  ];
+  ]; 
 
   const brands = [
     { name: "Maruti", logo: "https://static.cdnlogo.com/logos/m/85/maruti-suzuki.svg" },
@@ -78,18 +140,19 @@ const Home: React.FC = () => {
           }}
         ></div> */}
 
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-        >
-          <source src="https://www.pexels.com/download/video/8470302/" type="video/mp4" />
-        </video>
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <iframe
+            className="absolute top-0 left-0 w-full h-full"
+            src="https://www.youtube-nocookie.com/embed/yOV6jz9xMf0?autoplay=1&mute=1&loop=1&playlist=yOV6jz9xMf0&controls=0&modestbranding=1&showinfo=0&rel=0&fs=0&disablekb=1"
+            title="Background Video"
+            frameBorder="0"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+            style={{ pointerEvents: 'none' }}
+          ></iframe>
+        </div>
 
-
-        <div className="relative z-10 text-center text-blue-500 max-w-4xl mx-auto px-4">
+        <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
           <motion.h1
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -228,6 +291,116 @@ const Home: React.FC = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Gallery Section */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          {/* Heading */}
+          <div className="text-center mb-12">
+            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Our <span className="text-red-600">Gallery</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Some memorable moments from our recent events.
+            </p>
+          </div>
+
+          {/* Single-line Auto-scrolling Gallery */}
+          <div className="overflow-hidden mb-12">
+            <div className="flex space-x-6 animate-gallery-scroll">
+              {[...galleryImages, ...galleryImages].map((image, idx) => (
+                <div
+                  key={`${image._id}-${idx}`}
+                  className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-lg cursor-pointer hover:scale-105 transform transition"
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <img
+                    src={image.imageUrl}
+                    alt={image.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-6 text-center text-red-500">{error}</div>
+          )}
+
+          {/* Gallery scroll keyframes */}
+          <style>
+            {`
+              @keyframes gallery-scroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+              .animate-gallery-scroll {
+                display: flex;
+                gap: 1.5rem;
+                animation: gallery-scroll 25s linear infinite;
+              }
+            `}
+          </style>
+
+          <div ref={loaderRef} className="flex justify-center">
+            {hasMore && !isLoading && (
+              <button
+                onClick={fetchGallery}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Load More
+              </button>
+            )}
+            {isLoading && <div className="text-gray-500">Loading...</div>}
+            {!hasMore && galleryImages.length > 0 && (
+              <div className="text-gray-500">You have reached the end of the gallery.</div>
+            )}
+          </div>
+
+          {/* Popup Lightbox */}
+          {selectedImage && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+              onClick={() => setSelectedImage(null)}
+            >
+              <div className="bg-white rounded-lg max-w-4xl w-full mx-4 overflow-hidden">
+                <img
+                  src={selectedImage.imageUrl}
+                  alt={selectedImage.title}
+                  className="w-full h-auto"
+                />
+                <div className="p-6 bg-gray-900 text-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold">{selectedImage.title}</h3>
+                      {selectedImage.description && (
+                        <p className="text-gray-300 mt-2">{selectedImage.description}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setSelectedImage(null)}
+                      className="text-gray-300 hover:text-white"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  {selectedImage.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedImage.tags.map((tag) => (
+                        <span key={tag} className="bg-white/10 text-white text-xs px-3 py-1 rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

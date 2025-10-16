@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Clock, 
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
   Send,
   MessageCircle,
   Calendar,
@@ -26,7 +26,7 @@ const Contact: React.FC = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      const API_BASE = import.meta.env.VITE_CONTACT_API_URL || 'http://localhost:5001';
+  const API_BASE = import.meta.env.VITE_CONTACT_API_URL || 'http://localhost:5000';
       const response = await fetch(`${API_BASE}/api/contact`, {
         method: 'POST',
         headers: {
@@ -57,19 +57,19 @@ const Contact: React.FC = () => {
     {
       icon: Phone,
       title: 'Call Us',
-      details: ['+91 98765 43210', '+91 98765 43211'],
+      details: ['+91 94371 42013', '+91 79789 33702'],
       description: '24/7 Emergency Support'
     },
     {
       icon: Mail,
       title: 'Email Us',
-      details: ['info@maatarini.com', 'support@maatarini.com'],
+      details: ['maamangalaautoworks5@gmail.com'],
       description: 'We respond within 2 hours'
     },
     {
       icon: MapPin,
       title: 'Visit Us',
-      details: ['123 Service Road, Auto Hub', 'Mumbai, Maharashtra 400001'],
+      details: ['Near Symphony Mall, Rudrapur, Hanspal, Bhubaneswar, Odisha 752101'],
       description: 'Easy parking available'
     },
     {
@@ -94,7 +94,7 @@ const Contact: React.FC = () => {
       title: 'WhatsApp',
       description: 'Chat with us instantly on WhatsApp',
       action: 'Chat Now',
-      link: 'https://wa.me/919876543210',
+      link: 'https://wa.me/919438142013',
       color: 'bg-green-600 hover:bg-green-700'
     },
     {
@@ -102,7 +102,7 @@ const Contact: React.FC = () => {
       title: 'Call Emergency',
       description: 'Need immediate roadside assistance?',
       action: 'Call Now',
-      link: 'tel:+919876543210',
+      link: 'tel:+917978933702',
       color: 'bg-orange-600 hover:bg-orange-700'
     }
   ];
@@ -172,7 +172,7 @@ const Contact: React.FC = () => {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
                 Get in <span className="text-red-600">Touch</span>
               </h2>
-              
+
               <div className="space-y-6">
                 {contactInfo.map((info, index) => (
                   <motion.div
@@ -215,7 +215,7 @@ const Contact: React.FC = () => {
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
                   Send us a <span className="text-red-600">Message</span>
                 </h2>
-                
+
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -236,7 +236,7 @@ const Contact: React.FC = () => {
                         Phone *
                       </label>
                       <input
-                        {...register('phone', { 
+                        {...register('phone', {
                           required: 'Phone number is required',
                           pattern: {
                             value: /^[0-9]{10}$/,
@@ -256,7 +256,7 @@ const Contact: React.FC = () => {
                       Email *
                     </label>
                     <input
-                      {...register('email', { 
+                      {...register('email', {
                         required: 'Email is required',
                         pattern: {
                           value: /^\S+@\S+$/i,
@@ -343,22 +343,25 @@ const Contact: React.FC = () => {
               {/* Placeholder for Google Maps */}
               <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
                 <div className="text-center">
-                  <MapPin className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                  {/* <MapPin className="h-12 w-12 text-red-600 mx-auto mb-4" />
                   <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                     Interactive Map
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
                     123 Service Road, Maa Mangala<br />
                     Bhubaneswar, Odisha 751028
-                  </p>
-                  <a
-                    href="https://maps.google.com/?q=123+Service+Road+Maa+Mangala+Bhubaneswar+Odisha+751028"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors duration-300"
-                  >
+                  </p> */}
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d119735.41745082382!2d85.76543980774478!3d20.31136572319549!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a190a51a86565af%3A0xe3c595512f373bf8!2sMaa%20Mangala%20Auto%20Works!5e0!3m2!1sen!2sin!4v1760334256119!5m2!1sen!2sin"
+                    width="1196"
+                    height="360"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                  <p className="text-gray-600 dark:text-gray-400">
                     Open in Google Maps
-                  </a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -391,7 +394,7 @@ const Contact: React.FC = () => {
               },
               {
                 question: 'Can I schedule a service appointment via phone?',
-                answer: 'Yes! You can call us at +91 98765 43210 to schedule your appointment. Our online booking system is also available 24/7 for your convenience.'
+                answer: 'Yes! You can call us at +91 79789 33702 or use the "Book Now" button on our website to schedule your appointment. Our online booking system is also available 24/7 for your convenience.'
               },
               {
                 question: 'Do you provide pickup and delivery services?',

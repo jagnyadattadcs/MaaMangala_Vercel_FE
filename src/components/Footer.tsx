@@ -5,7 +5,7 @@ import { Wrench, Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram } from
 const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
@@ -19,13 +19,13 @@ const Footer: React.FC = () => {
               Your trusted partner for all car repair and maintenance needs. Expert technicians, quality parts, and exceptional service.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-red-600 transition-colors duration-200">
+              <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-red-600 transition-colors duration-200">
+              <a href="#" className="text-gray-400 hover:text-sky-400 transition-colors duration-200">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-red-600 transition-colors duration-200">
+              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors duration-200">
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -59,17 +59,17 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-red-600" />
-                <span className="text-gray-400">+91 7978933702</span>
+                <span className="text-gray-400">+91 79789 33702</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-red-600" />
-                <span className="text-gray-400">info@maamangala.com</span>
+                <span className="text-gray-400">maamangalaautoworks5@gmail.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-red-600 mt-1" />
                 <span className="text-gray-400">
-                  123 Service Road, Maa Mangala Nagar,<br />
-                  Bhubaneswar, Odisha 751028
+                  Near Symphony Mall, Rudrapur, Hanspal<br />
+                  Bhubaneswar, Odisha 752101
                 </span>
               </div>
             </div>

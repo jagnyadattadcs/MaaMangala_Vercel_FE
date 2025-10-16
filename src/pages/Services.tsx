@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-  Settings, 
-  Battery, 
-  Wrench, 
-  Car, 
+import {
+  Settings,
+  Battery,
+  Wrench,
+  Car,
   Zap,
   Gauge,
   PaintBucket,
@@ -17,9 +17,27 @@ import {
 } from 'lucide-react';
 
 const Services: React.FC = () => {
-  const services = [
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Icon mapping
+  const iconMap = {
+    Settings,
+    Battery,
+    Wrench,
+    Car,
+    Zap,
+    Gauge,
+    PaintBucket,
+    Shield,
+    CheckCircle
+  };
+
+  // Fallback data
+  const fallbackServices = [
     {
-      icon: Settings,
+      _id: '1',
+      icon: 'Settings',
       title: 'Engine Repair',
       description: 'Complete engine diagnostics, repair, and maintenance services',
       features: ['Engine diagnostics', 'Oil change', 'Tune-up', 'Performance optimization'],
@@ -28,7 +46,8 @@ const Services: React.FC = () => {
       rating: 4.8
     },
     {
-      icon: Car,
+      _id: '2',
+      icon: 'Car',
       title: 'AC Service',
       description: 'Air conditioning system repair and maintenance',
       features: ['AC gas refill', 'Filter replacement', 'Compressor repair', 'Temperature control'],
@@ -37,7 +56,8 @@ const Services: React.FC = () => {
       rating: 4.9
     },
     {
-      icon: Wrench,
+      _id: '3',
+      icon: 'Wrench',
       title: 'Brake Service',
       description: 'Complete brake system inspection and repair',
       features: ['Brake pad replacement', 'Brake fluid change', 'Disc/drum service', 'ABS repair'],
@@ -46,7 +66,8 @@ const Services: React.FC = () => {
       rating: 4.7
     },
     {
-      icon: Battery,
+      _id: '4',
+      icon: 'Battery',
       title: 'Battery Service',
       description: 'Battery testing, maintenance, and replacement',
       features: ['Battery testing', 'Terminal cleaning', 'Battery replacement', 'Charging system check'],
@@ -55,7 +76,8 @@ const Services: React.FC = () => {
       rating: 4.9
     },
     {
-      icon: Car,
+      _id: '5',
+      icon: 'Car',
       title: 'Tyre Service',
       description: 'Complete tyre care and replacement services',
       features: ['Tyre rotation', 'Balancing & alignment', 'Puncture repair', 'Tyre replacement'],
@@ -64,7 +86,8 @@ const Services: React.FC = () => {
       rating: 4.8
     },
     {
-      icon: Gauge,
+      _id: '6',
+      icon: 'Gauge',
       title: 'Transmission Service',
       description: 'Manual and automatic transmission repair',
       features: ['Transmission fluid change', 'Clutch repair', 'Gear box service', 'CVT maintenance'],
@@ -73,7 +96,8 @@ const Services: React.FC = () => {
       rating: 4.6
     },
     {
-      icon: Zap,
+      _id: '7',
+      icon: 'Zap',
       title: 'Electrical Service',
       description: 'Electrical system diagnostics and repair',
       features: ['Wiring inspection', 'Light replacement', 'Starter/alternator service', 'ECU diagnostics'],
@@ -82,7 +106,8 @@ const Services: React.FC = () => {
       rating: 4.7
     },
     {
-      icon: Shield,
+      _id: '8',
+      icon: 'Shield',
       title: 'Suspension Service',
       description: 'Suspension system repair and maintenance',
       features: ['Shock absorber replacement', 'Spring service', 'Strut repair', 'Steering alignment'],
@@ -91,7 +116,8 @@ const Services: React.FC = () => {
       rating: 4.8
     },
     {
-      icon: PaintBucket,
+      _id: '9',
+      icon: 'PaintBucket',
       title: 'Paint & Body',
       description: 'Complete paint job and body repair services',
       features: ['Dent removal', 'Paint touch-up', 'Full body paint', 'Scratch repair'],
@@ -100,7 +126,8 @@ const Services: React.FC = () => {
       rating: 4.5
     },
     {
-      icon: Car,
+      _id: '10',
+      icon: 'Car',
       title: 'Interior Cleaning',
       description: 'Deep cleaning and detailing services',
       features: ['Seat cleaning', 'Dashboard polish', 'Carpet wash', 'Odor removal'],
@@ -109,7 +136,8 @@ const Services: React.FC = () => {
       rating: 4.8
     },
     {
-      icon: CheckCircle,
+      _id: '11',
+      icon: 'CheckCircle',
       title: 'General Checkup',
       description: 'Comprehensive vehicle health inspection',
       features: ['Multi-point inspection', 'Diagnostic scan', 'Safety check', 'Performance report'],
@@ -118,7 +146,8 @@ const Services: React.FC = () => {
       rating: 4.9
     },
     {
-      icon: Settings,
+      _id: '12',
+      icon: 'Settings',
       title: 'Periodic Maintenance',
       description: 'Scheduled maintenance as per manufacturer guidelines',
       features: ['Service reminder', 'Warranty maintenance', 'Genuine parts', 'Service history'],
@@ -127,6 +156,27 @@ const Services: React.FC = () => {
       rating: 4.8
     }
   ];
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/services');
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data);
+        } else {
+          // Fallback to hardcoded data if API fails
+          setServices(fallbackServices);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        setServices(fallbackServices);
+      }
+      setLoading(false);
+    };
+
+    fetchServices();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -152,20 +202,28 @@ const Services: React.FC = () => {
       {/* Services Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <motion.div
-                key={service.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-200 dark:border-gray-700 overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-red-600 p-3 rounded-lg">
-                      <service.icon className="h-6 w-6 text-white" />
-                    </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading services...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service, index) => {
+                const IconComponent = iconMap[service.icon];
+                return (
+                  <motion.div
+                    key={service._id || service.title}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="bg-red-600 p-3 rounded-lg">
+                          {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
+                        </div>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -213,12 +271,14 @@ const Services: React.FC = () => {
                     <span>Book Now</span>
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+                     </div>
+                   </motion.div>
+                 );
+               })}
+             </div>
+           )}
+         </div>
+     </section>
 
       {/* Why Choose Our Services */}
       <section className="py-16 bg-white dark:bg-gray-800">
@@ -241,8 +301,8 @@ const Services: React.FC = () => {
             {[
               {
                 icon: Shield,
-                title: 'Warranty Guaranteed',
-                description: '6-month warranty on all repairs and services'
+                title: 'We Keep You Moving',
+                description: 'Fast, Affordable & Hassle-Free Car Service'
               },
               {
                 icon: CheckCircle,
