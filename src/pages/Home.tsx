@@ -56,19 +56,19 @@ const Home: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [API_URL, hasMore, isLoading]);
+  }, [hasMore, isLoading]);
 
   useEffect(() => {
     fetchGallery();
   }, [fetchGallery]);
 
   useEffect(() => {
-    if (!loaderRef.current || !hasMore) return;
+    if (!loaderRef.current || !hasMore || galleryImages.length === 0) return;
 
     observerRef.current?.disconnect();
 
     observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !isLoading) {
+      if (entries[0].isIntersecting && !isLoading && hasMore) {
         fetchGallery();
       }
     });
@@ -76,7 +76,7 @@ const Home: React.FC = () => {
     observerRef.current.observe(loaderRef.current);
 
     return () => observerRef.current?.disconnect();
-  }, [fetchGallery, hasMore, isLoading]);
+  }, [fetchGallery, hasMore, isLoading, galleryImages.length]);
 
   const services = [
     { icon: Settings, title: 'Engine Repair', description: 'Complete engine diagnostics and repair' },
@@ -308,24 +308,34 @@ const Home: React.FC = () => {
           </div>
 
           {/* Single-line Auto-scrolling Gallery */}
-          <div className="overflow-hidden mb-12">
-            <div className="flex space-x-6 animate-gallery-scroll">
-              {[...galleryImages, ...galleryImages].map((image, idx) => (
-                <div
-                  key={`${image._id}-${idx}`}
-                  className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-lg cursor-pointer hover:scale-105 transform transition"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <img
-                    src={image.imageUrl}
-                    alt={image.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
+          {isLoading && galleryImages.length === 0 ? (
+            <div className="flex justify-center items-center h-48 mb-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
             </div>
-          </div>
+          ) : galleryImages.length === 0 ? (
+            <div className="text-center text-gray-500 dark:text-gray-400 h-48 flex items-center justify-center mb-12">
+              No images available in the gallery.
+            </div>
+          ) : (
+            <div className="overflow-hidden mb-12">
+              <div className="flex space-x-6 animate-gallery-scroll">
+                {[...galleryImages, ...galleryImages].map((image, idx) => (
+                  <div
+                    key={`${image._id}-${idx}`}
+                    className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-lg cursor-pointer hover:scale-105 transform transition"
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <img
+                      src={image.imageUrl}
+                      alt={image.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 text-center text-red-500">{error}</div>
