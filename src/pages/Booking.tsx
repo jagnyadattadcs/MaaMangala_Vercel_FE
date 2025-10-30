@@ -14,6 +14,7 @@ import {
   Phone
 } from 'lucide-react';
 
+
 interface BookingFormData {
   // Car Details
   brand: string;
@@ -44,6 +45,8 @@ const Booking: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<BookingFormData>>({});
   const { register, handleSubmit, formState: { errors }, watch } = useForm<BookingFormData>();
+
+  const Base_URL = import.meta.env.VITE_CONTACT_API_URL || 'http://localhost:5000';
 
   const totalSteps = 5;
 
@@ -79,7 +82,7 @@ const Booking: React.FC = () => {
     setFormData({ ...formData, ...data });
     if (currentStep === totalSteps) {
       try {
-        const response = await fetch('http://localhost:5000/api/bookings', {
+        const response = await fetch(`${Base_URL}/api/bookings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -157,10 +157,12 @@ const Services: React.FC = () => {
     }
   ];
 
+  const Base_URL = import.meta.env.VITE_CONTACT_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/services');
+        const response = await fetch(`${Base_URL}/api/services`);
         if (response.ok) {
           const data = await response.json();
           setServices(data);
