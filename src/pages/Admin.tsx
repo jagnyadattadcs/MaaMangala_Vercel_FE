@@ -20,7 +20,8 @@ import {
   ImagePlus,
   UploadCloud,
   Tag,
-  Camera
+  Camera,
+  ClipboardList
 } from 'lucide-react';
 import type { GalleryImage } from '../types/gallery';
 
@@ -33,6 +34,28 @@ interface Service {
   price: string;
   duration: string;
   rating: number;
+}
+
+interface Booking {
+  _id: string;
+  brand: string;
+  model: string;
+  year?: string;
+  registrationNumber?: string;
+  fuel?: string;
+  services: string[];
+  description?: string;
+  date?: string;
+  time?: string;
+  serviceType?: string;
+  name: string;
+  phone: string;
+  address?: string;
+  city?: string;
+  pincode?: string;
+  email?: string;
+  status: 'pending' | 'accepted' | 'cancelled';
+  createdAt?: string;
 }
 
 interface GalleryFormState {
@@ -73,7 +96,7 @@ const Admin: React.FC = () => {
     }
   }, [adminUsername, adminPassword]);
 
-  const [activeTab, setActiveTab] = useState<'services' | 'gallery'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'gallery' | 'bookings'>('services');
 
   // Service management state
   const [services, setServices] = useState<Service[]>([]);
@@ -101,6 +124,12 @@ const Admin: React.FC = () => {
   const [galleryForm, setGalleryForm] = useState<GalleryFormState>(initialGalleryFormState);
   const [gallerySaving, setGallerySaving] = useState(false);
 
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingActionLoadingId, setBookingActionLoadingId] = useState<string | null>(null);
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'cancelled'>('all');
+
   const iconOptions = [
     { value: 'Settings', label: 'Settings', icon: Settings },
     { value: 'Battery', label: 'Battery', icon: Battery },
@@ -118,14 +147,20 @@ const Admin: React.FC = () => {
         title: 'Admin Panel - Services Management',
         subtitle: 'Manage your car service offerings'
       }
-    : {
-        title: 'Admin Panel - Gallery Management',
-        subtitle: 'Upload, organise, and curate your photo gallery'
-      };
+    : activeTab === 'gallery'
+      ? {
+          title: 'Admin Panel - Gallery Management',
+          subtitle: 'Upload, organise, and curate your photo gallery'
+        }
+      : {
+          title: 'Admin Panel - Bookings',
+          subtitle: 'Review customer bookings and manage responses'
+        };
 
   useEffect(() => {
     fetchServices();
     fetchGalleryImages();
+    fetchBookings();
   }, []);
 
   useEffect(() => {
@@ -299,6 +334,27 @@ const Admin: React.FC = () => {
       setGalleryError(error instanceof Error ? error.message : 'Unable to load gallery images');
     } finally {
       setLoadingGallery(false);
+    }
+  };
+
+  const fetchBookings = async () => {
+    setLoadingBookings(true);
+    setBookingError(null);
+
+    try {
+      const query = bookingStatusFilter === 'all' ? '' : `?status=${bookingStatusFilter}`;
+      const response = await fetch(`${API_URL}/api/bookings${query}`);
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'Unable to read response body');
+        throw new Error(`Failed to load bookings: ${response.status} ${response.statusText} - ${text}`);
+      }
+      const data = await response.json();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (error: unknown) {
+      console.error('Error loading bookings:', error);
+      setBookingError(error instanceof Error ? error.message : 'Unable to load bookings');
+    } finally {
+      setLoadingBookings(false);
     }
   };
 
@@ -573,6 +629,61 @@ const Admin: React.FC = () => {
     setShowGalleryForm(true);
   };
 
+  const handleBookingAction = async (id: string, action: 'accept' | 'cancel') => {
+    setBookingActionLoadingId(id);
+
+    try {
+      const response = await fetch(`${API_URL}/api/bookings/${id}/${action}`, {
+        method: 'PATCH'
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'Unable to read response body');
+        throw new Error(`Failed to ${action} booking: ${response.status} ${response.statusText} - ${text}`);
+      }
+
+      await fetchBookings();
+    } catch (error: unknown) {
+      console.error(`Error performing booking ${action}:`, error);
+      alert(error instanceof Error ? error.message : `Unable to ${action} booking`);
+    } finally {
+      setBookingActionLoadingId(null);
+    }
+  };
+
+  // New function to handle booking deletion
+  const handleBookingDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+      return;
+    }
+
+    setBookingActionLoadingId(id);
+
+    try {
+      const headers: Record<string, string> = {};
+      if (authHeader) {
+        headers.Authorization = authHeader;
+      }
+
+      const response = await fetch(`${API_URL}/api/bookings/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'Unable to read response body');
+        throw new Error(`Failed to delete booking: ${response.status} ${response.statusText} - ${text}`);
+      }
+
+      await fetchBookings();
+    } catch (error: unknown) {
+      console.error('Error deleting booking:', error);
+      alert(error instanceof Error ? error.message : 'Unable to delete booking');
+    } finally {
+      setBookingActionLoadingId(null);
+    }
+  };
+
   const isInitialLoading = loadingServices && loadingGallery;
 
   if (isInitialLoading) {
@@ -617,6 +728,17 @@ const Admin: React.FC = () => {
             >
               <Images className="h-4 w-4" />
               <span>Gallery</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 flex items-center space-x-2 ${
+                activeTab === 'bookings'
+                  ? 'bg-red-600 text-white shadow-lg'
+                  : 'bg-white/80 text-gray-700 hover:bg-red-50 dark:bg-gray-800 dark:text-gray-200'
+              }`}
+            >
+              <ClipboardList className="h-4 w-4" />
+              <span>Bookings</span>
             </button>
             <button
               onClick={handleLogout}
@@ -902,6 +1024,156 @@ const Admin: React.FC = () => {
           </div>
         )}
 
+        {activeTab === 'bookings' && (
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex flex-wrap items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <select
+                  value={bookingStatusFilter}
+                  onChange={(event) => {
+                    const value = event.target.value as 'all' | 'pending' | 'accepted' | 'cancelled';
+                    setBookingStatusFilter(value);
+                    setTimeout(() => {
+                      fetchBookings();
+                    }, 0);
+                  }}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                >
+                  <option value="all">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <button
+                  onClick={fetchBookings}
+                  className="px-4 py-2 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                >
+                  Refresh
+                </button>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Total: {bookings.length}</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg"
+            >
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Bookings</h2>
+                {bookingError && <span className="text-sm text-red-500">{bookingError}</span>}
+              </div>
+
+              {loadingBookings ? (
+                <div className="px-6 py-12 flex justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-gray-500 dark:text-gray-400">No bookings found.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {bookings.map((booking) => {
+                    const servicesDisplay = booking.services?.length ? booking.services.join(', ') : 'Not specified';
+                    const addressDisplay = [booking.address, booking.city, booking.pincode].filter(Boolean).join(', ');
+                    const serviceTypeLabel = booking.serviceType === 'pickup' ? 'Pickup & Drop' : 'Workshop Visit';
+                    return (
+                      <div key={booking._id} className="px-6 py-4">
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className="text-lg font-semibold text-gray-900 dark:text-white">{booking.name}</span>
+                              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                                booking.status === 'accepted'
+                                  ? 'bg-green-100 text-green-700'
+                                  : booking.status === 'cancelled'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {booking.status.toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300">
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">Vehicle</p>
+                                <p>{booking.brand} {booking.model}</p>
+                                {booking.year && <p>Year: {booking.year}</p>}
+                                {booking.registrationNumber && <p>Reg: {booking.registrationNumber}</p>}
+                                {booking.fuel && <p>Fuel: {booking.fuel}</p>}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">Service Details</p>
+                                <p>{servicesDisplay}</p>
+                                <p>Date: {booking.date || 'Not specified'}</p>
+                                <p>Time: {booking.time || 'Not specified'}</p>
+                                <p>Type: {serviceTypeLabel}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">Customer</p>
+                                <p>{booking.phone}</p>
+                                {booking.email && <p>{booking.email}</p>}
+                                {addressDisplay && <p>{addressDisplay}</p>}
+                              </div>
+                              {booking.description && (
+                                <div className="md:col-span-2">
+                                  <p className="font-medium text-gray-900 dark:text-white">Issue Description</p>
+                                  <p>{booking.description}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleBookingAction(booking._id, 'accept')}
+                              disabled={booking.status === 'accepted' || bookingActionLoadingId === booking._id}
+                              className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-300 ${
+                                booking.status === 'accepted' || bookingActionLoadingId === booking._id
+                                  ? 'bg-green-400 cursor-not-allowed'
+                                  : 'bg-green-600 hover:bg-green-700'
+                              }`}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleBookingAction(booking._id, 'cancel')}
+                              disabled={booking.status === 'cancelled' || bookingActionLoadingId === booking._id}
+                              className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-300 ${
+                                booking.status === 'cancelled' || bookingActionLoadingId === booking._id
+                                  ? 'bg-red-400 cursor-not-allowed'
+                                  : 'bg-red-600 hover:bg-red-700'
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleBookingDelete(booking._id)}
+                              disabled={bookingActionLoadingId === booking._id}
+                              className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-300 ${
+                                bookingActionLoadingId === booking._id
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-gray-600 hover:bg-gray-700'
+                              }`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+
         {activeTab === 'gallery' && (
           <div className="space-y-8">
             <motion.div
@@ -1006,7 +1278,7 @@ const Admin: React.FC = () => {
                       value={galleryForm.description}
                       onChange={(event) => handleGalleryInputChange('description', event.target.value)}
                       rows={3}
-                      placeholder="Describe what’s in the image"
+                      placeholder="Describe what's in the image"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
